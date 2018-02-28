@@ -1,0 +1,11 @@
+[aos]
+name=Prerelease version of Atomic Enterprise Platform and OpenShift Enterprise RPMs
+#baseurl=https://mirror.openshift.com/enterprise/online-int/v3.9.0-0.42.0_2018-02-09.3/RH7-RHAOS-3.9/x86_64/os/
+
+baseurl=https://mirror.openshift.com/enterprise/all/3.9/latest/x86_64/os
+failovermethod=priority
+enabled=1
+gpgcheck=0
+sslverify=0
+sslclientcert=/var/lib/yum/client-cert.pem
+sslclientkey=/var/lib/yum/client-key.pem

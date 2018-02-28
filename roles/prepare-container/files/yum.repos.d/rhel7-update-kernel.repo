@@ -1,0 +1,8 @@
+[rhel-7-update-kernel]
+name=rhel-7-update-kernel
+baseurl=https://mirror.openshift.com/enterprise/rhel/rhel-7.4-kernel-latest/x86_64/os/
+enabled=1
+gpgcheck=0
+skip_if_unavailable=1
+sslclientcert=/var/lib/yum/client-cert.pem
+sslclientkey=/var/lib/yum/client-key.pem

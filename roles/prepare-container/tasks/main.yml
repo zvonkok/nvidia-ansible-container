@@ -1,0 +1,20 @@
+---
+- name: setup the repositories from the current node
+  copy:
+    src: yum.repos.d/
+    dest: /etc/yum.repos.d/
+
+- name: copy pem files
+  copy:
+    src: client-cert.pem
+    dest: /var/lib/yum/
+- copy:
+    src: client-key.pem
+    dest: /var/lib/yum/
+
+- name: remove CentOs repo because of centos conductor image
+  shell: yum clean all; rm /etc/yum.repos.d/CentOS*; ls -l /etc/yum.repos.d/;
+
+- name: create needed directories
+  shell: mkdir -p /lib/modules/`uname -r` && ln -s /usr/src/kernels/`uname -r` /lib/modules/`uname -r`/build
+

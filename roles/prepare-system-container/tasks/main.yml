@@ -1,0 +1,29 @@
+---
+- name: upload copy script
+  copy:
+    src:  copy-cap-sys.sh
+    dest: /usr/local/bin/
+    mode: a+rx
+
+- name: exports/config.json.template
+  lineinfile:
+    path: /exports/config.json.template
+    line: '{"process" : {"args" : []}, "root" : {"path" : "rootfs", "readonly" : true} }'
+    create: yes
+
+- name: exports/hostfs/etc/ld.so.conf.d/nvidia.conf
+  lineinfile:
+    path: /exports/hostfs/etc/ld.so.conf.d/nvidia.conf
+    line: '/opt/nvidia/lib'
+
+- name: exports/hostfs/etc/modprobe.d/nouveau.conf
+  blockinfile:
+    path: /exports/hostfs/etc/modprobe.d/nouveau.conf
+    block: |
+      blacklist nouveau
+      install nouveau /bin/true
+
+
+
+
+

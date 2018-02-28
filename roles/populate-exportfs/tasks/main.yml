@@ -1,0 +1,6 @@
+#---
+#- name: config.json.template
+#  lineinfile:
+#    path: /tmp/exports/config.json.template
+#    line: '{"process" : {"args" : []}, "root" : {"path" : "rootfs", "readonly" : true} }'
+#  delegate_to: localhost
