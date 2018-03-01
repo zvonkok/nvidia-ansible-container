@@ -16,5 +16,5 @@
   shell: yum clean all; rm /etc/yum.repos.d/CentOS*; ls -l /etc/yum.repos.d/;
 
 - name: create needed directories
-  shell: mkdir -p /lib/modules/`uname -r` && ln -s /usr/src/kernels/`uname -r` /lib/modules/`uname -r`/build
+  shell: mkdir -p /lib/modules/`uname -r` && ln -sf /usr/src/kernels/`uname -r` /lib/modules/`uname -r`/build
 

@@ -1,9 +1,27 @@
 ---
-- name: upload copy script
-  copy:
-    src:  copy-cap-sys.sh
-    dest: /usr/local/bin/
-    mode: a+rx
+#- name: upload copy script
+#  copy:
+#    src:  copy-cap-sys.sh
+#    dest: /usr/local/bin/
+#    mode: a+rx
+
+- name: get the correct kernel version from running kernel
+  shell: echo `uname -r`
+  register: kernel_version
+
+- name: check for existing directories
+  file: 
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /exports/hostfs/etc/modprobe.d
+    - /exports/hostfs/etc/ld.so.conf.d
+    - /exports/hostfs/usr/libexec/oci/hooks.d
+    - /exports/hostfs/etc/containers/oci/hooks.d
+    - /exports/hostfs/etc/profile.d
+    - /exports/hostfs/opt/nvidia/lib
+    - /exports/hostfs/opt/nvidia/bin
+    - /exports/hostfs/opt/nvidia/lib/modules/{{ kernel_version.stdout }}/extra
 
 - name: exports/config.json.template
   lineinfile:
@@ -15,6 +33,7 @@
   lineinfile:
     path: /exports/hostfs/etc/ld.so.conf.d/nvidia.conf
     line: '/opt/nvidia/lib'
+    create: yes
 
 - name: exports/hostfs/etc/modprobe.d/nouveau.conf
   blockinfile:
@@ -22,6 +41,104 @@
     block: |
       blacklist nouveau
       install nouveau /bin/true
+    create: yes
+
+- name: exports/manifest.json
+  blockinfile:
+    path: /exports/manifest.json 
+    block: |
+       {
+          "noContainerService" : true
+       }
+    create: yes
+
+- name: exports/hostfs/usr/libexec/oci/hooks.d/oci-nvidia-hook 
+  blockinfile:
+    path: /exports/hostfs/usr/libexec/oci/hooks.d/oci-nvidia-hook
+    block: |
+      #!/bin/bash
+      
+      if [ ! -e /opt/nvidia/bin/nvidia-container-runtime-hook ]; then
+              exit 0
+      fi
+      
+      if [ $1 == "prestart" ]; then
+              LD_LIBRARY_PATH=/opt/nvidia/lib PATH=/opt/nvidia/bin /opt/nvidia/bin/nvidia-container-runtime-hook -prestart
+      fi
+    create: yes
+
+- name: exports/hostfs/etc/containers/oci/hooks.d/oci-nvidia-hook.json
+  blockinfile:
+    path: /exports/hostfs/etc/containers/oci/hooks.d/oci-nvidia-hook.json
+    block: |
+      {
+          "hook": "/usr/libexec/oci/hooks.d/oci-nvidia-hook",
+          "stage": [ "prestart" ]
+      }
+    create: yes    
+
+- name: exports/hostfs/etc/profile.d/nvidia.sh
+  blockinfile:
+    path: /exports/hostfs/etc/profile.d/nvidia.sh
+    block: |
+      PATH=$PATH:/opt/nvidia/bin
+      ldconfig 
+      modprobe -r nouveau
+      modprobe -d /opt/nvidia nvidia
+      modprobe -d /opt/nvidia nvidia-uvm
+      modprobe -d /opt/nvidia nvidia-modeset
+      /bin/bash -c /opt/nvidia/bin/nvidia-mkdev
+    create: yes
+
+
+- name: NVIDIA, copy binaries
+  copy: 
+    remote_src: yes
+    src: /usr/bin/nvidia-{{ item }} 
+    dest: /exports/hostfs/opt/nvidia/bin/
+  with_items: 
+    - smi
+    - debugdump
+    - persistenced
+    - cuda-mps-control
+    - cuda-mps-server
+    - container-cli 
+    - container-runtime-hook
+
+- name: NVIDIA, copy libraries
+  copy: 
+    remote_src: yes
+    src: "{{ item }}"
+    dest: /opt/nvidia/lib/
+  with_fileglob: /usr/lib64/nvidia/lib*
+
+- name: NVIDIA, find kernel modules
+  find: 
+    paths: /lib/modules/{{ kernel_version.stdout }}
+    recurse: yes
+    patterns: "nvidia*"
+  register: mods_to_copy
+
+- name: NVIDIA, copy modules
+  copy: 
+   remote_src: yes
+   src: "{{ item.path }}"
+   dest: /exports/hostfs/opt/nvidia/lib/modules/{{ kernel_version.stdout }}/extra/
+  with_items: "{{ mods_to_copy.files }}"
+
+# localhost
+
+#- name: NVIDIA, prepare scratch container
+#  shell: tar -czf - --files-from /dev/null > /tmp/nvidia-scratch.tar
+#  creates: /tmp/nvidia-scratch.tar
+
+#- name: NVIDIA, create scratch container
+#  shell: docker images | grep nvidia-scratch && docker import /tmp/nvidia-scratch.tar nvidia-scratch
+
+
+
+
+
 
 
 

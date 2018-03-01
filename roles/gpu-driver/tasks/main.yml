@@ -61,10 +61,10 @@
     state: present
     update_cache: yes
 
-- name: change selinux context of nvidia files
-  shell: |
-    chcon -t container_file_t  /dev/nvidia*
-    chcon -t container_file_t  /usr/lib64/nvidia/libnvidia*
-    chcon -t container_file_t  /usr/bin/nvidia-*
+#- name: change selinux context of nvidia files
+#  shell: |
+#    chcon -t container_file_t  /dev/nvidia*
+#    chcon -t container_file_t  /usr/lib64/nvidia/libnvidia*
+#    chcon -t container_file_t  /usr/bin/nvidia-*
 
 

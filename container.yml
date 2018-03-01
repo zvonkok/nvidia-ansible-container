@@ -55,8 +55,8 @@ services:
       - gpu-driver
       - prepare-system-container
     volumes:
-      - /tmp:/opt:Z
-    command: [/usr/local/bin/copy-cap-sys.sh]
+      - /tmp:/tmp:Z
+    command: [ 'cp', '-av',  '/exports', '/tmp/' ]
 
   nvidia-system-container:
     from: my-scratch
